@@ -14,7 +14,7 @@ const getAPIData = async (apiURL, headers=null) => {
     alert('Error: ' + response.statusText);
   }
   const json = await response.json();
-  return await json;
+  return json;
 };
 
 
@@ -37,8 +37,11 @@ const getAPIData = async (apiURL, headers=null) => {
 	  console.error(err);
 });*/
 
+
+
 apiURL = "https://dev.virtualearth.net/REST/v1/Routes?waypoint.1=4400+Baptist+Island+Rd+Groveland+FL+34736&waypoint.2=14222+Waterford+creek+blvd+Orlando+Fl+32828&distanceUnit=mi&o=json&c=en-GB&key=ApeHivnaztSwvGsBzGpbwnYJw9vAPSBI4LrGUh_YRYvmqZVRsrxjevRoSXGWi7M8";
-console.log(await getAPIData(apiURL));
+var jsonDist = getAPIData(apiURL);
+console.log(jsonDist);
 
 
 //https://rapidapi.com/logicbuilder/api/target-com-store-product-reviews-locations-data
@@ -72,7 +75,8 @@ console.log(await getAPIData(apiURL));
 
 apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/location/search?zip=34736&radius=100";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-console.log(await getAPIData(apiURL, headers));
+var jsonLoc = getAPIData(apiURL, headers);
+console.log(jsonLoc);
 
 /**
  * Target product search
@@ -102,7 +106,8 @@ console.log(await getAPIData(apiURL, headers));
 
 apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/product/search?store_id=3991&keyword=lamp&offset=0&limit=24&sponsored=1&rating=0";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-console.log(await getAPIData(apiURL, headers));
+var jsonProduct = getAPIData(apiURL, headers);
+console.log(jsonProduct);
 
 
 
@@ -128,7 +133,8 @@ console.log(await getAPIData(apiURL, headers));
 
 apiURL ="https://walmart.p.rapidapi.com/stores/list?postalCode=34736";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-console.log(await getAPIData(apiURL, headers));
+var jsonStores = getAPIData(apiURL, headers);
+console.log(jsonStores);
 
 //OR
 
@@ -166,4 +172,5 @@ console.log(await getAPIData(apiURL, headers));*/
 
 apiURL ="https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola%20crayons%2024ct";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-console.log(await getAPIData(apiURL, headers));
+var jsonProduct2 = getAPIData(apiURL, headers);
+console.log(jsonProduct2);
