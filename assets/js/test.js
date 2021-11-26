@@ -20,35 +20,24 @@ const getAPIData = async (apiURL, headers=null) => {
 
 /**
  * Driving distance and drive time
+ *    From shopper address to brick and mortar retailer
  * input parameters
- *    start address (waypoint.1)
- *    end address   (waypoint.2)
+ *    shopper address (waypoint.1)
+ *    store address   (waypoint.2)
  * Pertinent keys to pull from returned JSON
  *    .resourceSets[0].resources[0].travelDistance (miles)
  *    .resourceSets[0].resources[0].travelDuration (seconds)
  *    .resourceSets[0].resources[0].travelDurationTraffic (seconds)
  */
 
-
-/*fetch("https://dev.virtualearth.net/REST/v1/Routes?waypoint.1=4400+Baptist+Island+Rd+Groveland+FL+34736&waypoint.2=14222+Waterford+creek+blvd+Orlando+Fl+32828&distanceUnit=mi&o=json&c=en-GB&key=ApeHivnaztSwvGsBzGpbwnYJw9vAPSBI4LrGUh_YRYvmqZVRsrxjevRoSXGWi7M8")
-  .then(response => response.json())
-    .then(data => console.log(data))
-  .catch(err => {
-	  console.error(err);
-});*/
-
-
-
 apiURL = "https://dev.virtualearth.net/REST/v1/Routes?waypoint.1=4400+Baptist+Island+Rd+Groveland+FL+34736&waypoint.2=14222+Waterford+creek+blvd+Orlando+Fl+32828&distanceUnit=mi&o=json&c=en-GB&key=ApeHivnaztSwvGsBzGpbwnYJw9vAPSBI4LrGUh_YRYvmqZVRsrxjevRoSXGWi7M8";
-var jsonDist = getAPIData(apiURL);
-console.log(jsonDist);
+var jsonTravelDistance = getAPIData(apiURL);
+console.log(jsonTravelDistance);
 
-
-//https://rapidapi.com/logicbuilder/api/target-com-store-product-reviews-locations-data
 
 
 /**
- * Target store location search (to find closest location)
+ * Target brick and mortar location search (to find closest location)
  * input parameters
  *    zipcode (zipcode of shopper)
  *    radius  (radius in miles)
@@ -58,25 +47,16 @@ console.log(jsonDist);
  *    .locations[0-N].address.state
  *    .locations[0-N].address.postal_code
  *    .locations[0-N].location_id   (needed for product search storeid parameter)
+ * 
+ * REFERENCE: https://rapidapi.com/logicbuilder/api/target-com-store-product-reviews-locations-data
  */
-
-/*fetch("https://target-com-store-product-reviews-locations-data.p.rapidapi.com/location/search?zip=34736&radius=100", {
-	"method": "GET",
-	"headers": {
-		"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com",
-		"x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
-	}
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(err => {
-	console.error(err);
-});*/
 
 apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/location/search?zip=34736&radius=100";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonLoc = getAPIData(apiURL, headers);
-console.log(jsonLoc);
+var jsonTargetLocation = getAPIData(apiURL, headers);
+console.log(jsonTargetLocation);
+
+
 
 /**
  * Target product search
@@ -90,87 +70,46 @@ console.log(jsonLoc);
  *    .products[0].price.current_retail or .products[0].price.formatted_current_price
  */
 
-/*fetch("https://target-com-store-product-reviews-locations-data.p.rapidapi.com/product/search?store_id=3991&keyword=lamp&offset=0&limit=24&sponsored=1&rating=0", {
-	"method": "GET",
-	"headers": {
-		"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com",
-		"x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
-	}
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(err => {
-	console.error(err);
-});*/
-
-
 apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/product/search?store_id=3991&keyword=lamp&offset=0&limit=24&sponsored=1&rating=0";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonProduct = getAPIData(apiURL, headers);
-console.log(jsonProduct);
+var jsonTargetProduct = getAPIData(apiURL, headers);
+console.log(jsonTargetProduct);
 
 
 
-//https://rapidapi.com/apidojo/api/walmart/
+/**
+ * Walmart brick and mortar location search (to find closest location)
+ * input parameters
+ *    postalCode (zipcode of shopper)
+ * Pertinent keys to pull from returned JSON
+ *    .data.storesBySearchTerm.stores[0].adderess.postalCode
+ *    .data.storesBySearchTerm.stores[0].adderess.address
+ *    .data.storesBySearchTerm.stores[0].adderess.city
+ *    .data.storesBySearchTerm.stores[0].adderess.state
+ * 
+ * REFERENCE: https://rapidapi.com/apidojo/api/walmart/
+ */
 
-// walmart store locator
-
-
-
-
-/*fetch("https://walmart.p.rapidapi.com/stores/list?postalCode=75204", {
-	"method": "GET",
-	"headers": {
-		"x-rapidapi-host": "walmart.p.rapidapi.com",
-		"x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
-	}
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(err => {
-	console.error(err);
-});*/
-
-apiURL ="https://walmart.p.rapidapi.com/stores/list?postalCode=34736";
+apiURL ="https://walmart.p.rapidapi.com/stores/list-perferred?postalCode=34736";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonStores = getAPIData(apiURL, headers);
-console.log(jsonStores);
+var jsonWalmartLocations = getAPIData(apiURL, headers);
+console.log(jsonWalmartLocations);
 
 //OR
 
+apiURL ="https://walmart.p.rapidapi.com/stores/list-perferred?postalCode=34736&;preferredStoreId=2695";
+headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
+var jsonWalmartLocations = getAPIData(apiURL, headers);
+console.log(jsonWalmartLocations);
 
-/*fetch("https://walmart3.p.rapidapi.com/store-location?zip_code=34736", {
-	"method": "GET",
-	"headers": {
-		"x-rapidapi-host": "walmart3.p.rapidapi.com",
-		"x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
-	}
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(err => {
-	console.error(err);
-});
-
-apiURL ="https://walmart3.p.rapidapi.com/store-location?zip_code=34736";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart3.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-console.log(await getAPIData(apiURL, headers));*/
-
-//walmart product
-/*fetch("https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola%20crayons%2024ct", {
-	"method": "GET",
-	"headers": {
-		"x-rapidapi-host": "walmart.p.rapidapi.com",
-		"x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
-	}
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(err => {
-	console.error(err);
-});*/
+/**
+ * Walmart product search
+ *     
+ * input parameters
+ * Pertinent keys to pull from returned JSON
+ */
 
 apiURL ="https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola%20crayons%2024ct";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonProduct2 = getAPIData(apiURL, headers);
-console.log(jsonProduct2);
+var jsonWalmartProduct = getAPIData(apiURL, headers);
+console.log(jsonWalmartProduct);
