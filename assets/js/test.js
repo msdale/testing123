@@ -17,6 +17,20 @@ const getAPIData = async (apiURL, headers=null) => {
   return json;
 };
 
+/*
+  NOTE
+
+   Mark will wrap the below calls to the 3 different APIs in each of there own functions that...
+
+   1) Take as input parameters those listed for each API call shown below.
+   2) Execute the appropriate API query as listed below.
+   3) Perform any data transformations that must occur before the data values can be displayed
+      on the page.
+   4) Return a JSON object containing only the pertinent properly formatted keys/value pairs,
+      ready to be displayed on the page.
+*/
+
+
 
 /**
  * Driving distance and drive time
@@ -90,26 +104,29 @@ console.log(jsonTargetProduct);
  * REFERENCE: https://rapidapi.com/apidojo/api/walmart/
  */
 
-apiURL ="https://walmart.p.rapidapi.com/stores/list-perferred?postalCode=34736";
+apiURL ="https://walmart.p.rapidapi.com/stores/list?postalCode=34736";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
 var jsonWalmartLocations = getAPIData(apiURL, headers);
 console.log(jsonWalmartLocations);
 
 //OR
 
-apiURL ="https://walmart.p.rapidapi.com/stores/list-perferred?postalCode=34736&;preferredStoreId=2695";
+apiURL ="https://walmart.p.rapidapi.com/stores/list-preferred?postalCode=34736&preferredStoreId=2695";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
 var jsonWalmartLocations = getAPIData(apiURL, headers);
 console.log(jsonWalmartLocations);
 
 /**
  * Walmart product search
- *     
  * input parameters
+ *    query (descriptive terms of item) 
  * Pertinent keys to pull from returned JSON
+ *    .data.search.searchResult.itemStacks[0].items[0].name (descriptive name of item) 
+ *    .data.search.searchResult.itemStacks[0].items[0].imageInfo.thumbnailUrl (jpeg URL) 
+ *    .data.search.searchResult.itemStacks[0].items[0].priceInfo.currentPrice.price or priceString
  */
 
-apiURL ="https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola%20crayons%2024ct";
+apiURL ="https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola+crayons+24+count";
 headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
 var jsonWalmartProduct = getAPIData(apiURL, headers);
 console.log(jsonWalmartProduct);
