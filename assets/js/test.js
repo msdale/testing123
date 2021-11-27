@@ -1,132 +1,239 @@
 
 
-var apiURL;
-var headers;
-
-const getAPIData = async (apiURL, headers=null) => {
+const getAPIData = async (_apiURL, _headers=null) => {
   var response;
-  if (headers) {
-    response = await fetch(apiURL, headers);
+  if (_headers) {
+    response = await fetch(_apiURL, _headers);
   } else {
-    response = await fetch(apiURL);
+    response = await fetch(_apiURL);
   }
   if (!response.ok) {
     alert('Error: ' + response.statusText);
   }
   const json = await response.json();
-  return json;
+  return await json;
 };
-
-/*
-  NOTE
-
-   Mark will wrap the below calls to the 3 different APIs in each of there own functions that...
-
-   1) Take as input parameters those listed for each API call shown below.
-   2) Execute the appropriate API query as listed below.
-   3) Perform any data transformations that must occur before the data values can be displayed
-      on the page.
-   4) Return a JSON object containing only the pertinent properly formatted keys/value pairs,
-      ready to be displayed on the page.
-*/
-
 
 
 /**
- * Driving distance and drive time
- *    From shopper address to brick and mortar retailer
- * input parameters
- *    shopper address (waypoint.1)
- *    store address   (waypoint.2)
+ * drivingDistance() - Driving distance and drive time
+ *    from shopper address to brick and mortar retailer.
  * Pertinent keys to pull from returned JSON
  *    .resourceSets[0].resources[0].travelDistance (miles)
  *    .resourceSets[0].resources[0].travelDuration (seconds)
  *    .resourceSets[0].resources[0].travelDurationTraffic (seconds)
- */
-
-apiURL = "https://dev.virtualearth.net/REST/v1/Routes?waypoint.1=4400+Baptist+Island+Rd+Groveland+FL+34736&waypoint.2=14222+Waterford+creek+blvd+Orlando+Fl+32828&distanceUnit=mi&o=json&c=en-GB&key=ApeHivnaztSwvGsBzGpbwnYJw9vAPSBI4LrGUh_YRYvmqZVRsrxjevRoSXGWi7M8";
-var jsonTravelDistance = getAPIData(apiURL);
-console.log(jsonTravelDistance);
-
-
-
-/**
- * Target brick and mortar location search (to find closest location)
- * input parameters
- *    zipcode (zipcode of shopper)
- *    radius  (radius in miles)
- * Pertinent keys to pull from returned JSON
- *    .locations[0-N].address.address_line1
- *    .locations[0-N].address.city
- *    .locations[0-N].address.state
- *    .locations[0-N].address.postal_code
- *    .locations[0-N].location_id   (needed for product search storeid parameter)
  * 
- * REFERENCE: https://rapidapi.com/logicbuilder/api/target-com-store-product-reviews-locations-data
+ * @param {string} _shopperAddr 
+ * @param {string} _storeAddr 
+ * @returns {object} JSON object containing
+ *                      - distanceInMiles (between shopper and retail outlet) 
+ *                      - avgTimeInSeconds (average drive-time to retail outlet) 
+ *                      - trafficTimeInSeconds (traffic drive-time/real-time to retail outlet)
  */
+const drivingDistance = async function (_shopperAddr, _storeAddr) {
+  // transform parameters for URL syntax
+  var shopperAddr = _shopperAddr.replaceAll(/,/g, ' ').replaceAll(/ +/g, ' ').replaceAll(' ', '+');
+  var storeAddr = _storeAddr.replaceAll(/,/g, ' ').replaceAll(/ +/g, ' ').replaceAll(' ', '+');
 
-apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/location/search?zip=34736&radius=100";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonTargetLocation = getAPIData(apiURL, headers);
-console.log(jsonTargetLocation);
+  // construct the URL for virtual earth driving distance endpoint
+  var apiURL = "https://dev.virtualearth.net/REST/v1/Routes?waypoint.1=" + shopperAddr + "&waypoint.2=" + storeAddr + "&distanceUnit=mi&o=json&c=en-GB&key=ApeHivnaztSwvGsBzGpbwnYJw9vAPSBI4LrGUh_YRYvmqZVRsrxjevRoSXGWi7M8"; // REST endpoint
 
+  // execute the API call to the URL
+  var jsonTravelDistance = await getAPIData(apiURL);
 
+  // parse out pertinent data content returned
+  var distanceInMiles = jsonTravelDistance.resourceSets[0].resources[0].travelDistance;
+  var avgTimeInSeconds =  jsonTravelDistance.resourceSets[0].resources[0].travelDuration;
+  var trafficTimeInSeconds = jsonTravelDistance.resourceSets[0].resources[0].travelDuration;
+
+  // build a concise JSON object to return
+  var json = {"distanceInMiles": distanceInMiles,
+              "avgTimeInSeconds": avgTimeInSeconds,
+              "trafficTimeInSeconds": trafficTimeInSeconds};
+  return json;
+}
 
 /**
- * Target product search
- * input parameters
- *    store_id (location_id from store location search)     
- *    keyword  (describing the product, can be multiple words)
- *    sort_by  (use "pricelow" ...will sort low to high...then take the first off list)
+ * targetLocator() - Target brick and mortar location search (to find closest location).
+ * Pertinent keys to pull from returned JSON
+ *    .locations[0].address.address_line1
+ *    .locations[0].address.city
+ *    .locations[0].address.state
+ *    .locations[0].address.postal_code
+ *    .locations[0].location_id   (needed for product search storeid parameter)
+ * 
+ * @param {string} _zipCode 
+ * @param {string} _radiusInMiles 
+ * @returns {object} JSON object containing
+ *                      - address_line1 (street address) 
+ *                      - city
+ *                      - state
+ *                      - postal_code (zipcode)
+ *                      - location_id (of the store)
+ */
+const targetLocator = async function (_zipCode, _radiusInMiles) {
+  // construct the URL for target-com-store-product-reviews-locations-data endpoint
+  var apiURL = "https://target-com-store-product-reviews-locations-data.p.rapidapi.com/location/search?zip=" + _zipCode + "&radius=" + _radiusInMiles;  // REST endpoint
+  var headers = {
+              "method": "GET",
+              "headers": {
+                            "x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com",
+                            "x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
+                         }
+            }; 
+  
+  // execute the API call to the URL
+  var jsonTargetLocation = await getAPIData(apiURL, headers);
+
+  // parse out pertinent data content returned
+  var address_line1 = jsonTargetLocation.locations[0].address.address_line1;
+  var city = jsonTargetLocation.locations[0].address.city;
+  var state = jsonTargetLocation.locations[0].address.state;
+  var postal_code = jsonTargetLocation.locations[0].address.postal_code;
+  var location_id = jsonTargetLocation.locations[0].location_id;
+
+  // build a concise JSON object to return
+  var json = {"address": address_line1,
+              "city": city,
+              "state": state,
+              "zipCode": postal_code,
+              "location_id": location_id};
+  return json;
+}
+
+/**
+ * targetProductLocator() - Target product search
  * Pertinent keys to pull from returned JSON
  *    .products[0].item.enrichment.images.primary_image_url
  *    .products[0].item.product_description
  *    .products[0].price.current_retail or .products[0].price.formatted_current_price
+ * 
+ * @param {string} _location_id 
+ * @param {string} _productDescription 
+ * @returns {object} JSON object containing a list of items...each containing an
+ *                        - image (thumbnail image of the item) 
+ *                        - description (of the item)
+ *                        - price (decimal number)
+ *                        - formattedPrice (string representation of price with pre-pended $ sign)
  */
+const targetProductLocator = async function (_location_id, _productDescription) {
+  // transform parameters for URL syntax
+  var location_id = _location_id.trim();
+  var productDescription = _productDescription.trim().replaceAll(/,/g, ' ').replaceAll(/ +/g, ' ').replaceAll(' ', '+');
 
-apiURL ="https://target-com-store-product-reviews-locations-data.p.rapidapi.com/product/search?store_id=3991&keyword=lamp&offset=0&limit=24&sponsored=1&rating=0";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonTargetProduct = getAPIData(apiURL, headers);
-console.log(jsonTargetProduct);
+  // construct the URL for Target product search endpoint
+  var apiURL = "https://target-com-store-product-reviews-locations-data.p.rapidapi.com/product/search?store_id=" + location_id + "&keyword=" + productDescription + "&offset=0&limit=10&rating=0&sort_by=pricelow"; // REST endpoint
+  var headers = {
+              "method": "GET",
+              "headers": {
+                            "x-rapidapi-host": "target-com-store-product-reviews-locations-data.p.rapidapi.com",
+                            "x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
+                         }
+            }; 
 
+  // execute the API call to the URL
+  var jsonProductResults = await getAPIData(apiURL, headers);
+          
+  // parse out pertinent data content returned and build concise JSON object to return
+  var json = {"items":[]};
+  for (var i = 0; i < jsonProductResults.products.length; i++) {
+    json.items.push({
+      "image": jsonProductResults.products[i].item.enrichment.images.primary_image_url,
+      "description": jsonProductResults.products[i].item.product_description,
+      "price": jsonProductResults.products[i].price.current_retail,
+      "formattedPrice": jsonProductResults.products[i].price.formatted_current_price
+    });
+  }
+  return json;
+};
 
 
 /**
- * Walmart brick and mortar location search (to find closest location)
- * input parameters
- *    postalCode (zipcode of shopper)
+ * walmartLocator() - Walmart brick and mortar location search (to find closest location).
  * Pertinent keys to pull from returned JSON
- *    .data.storesBySearchTerm.stores[0].adderess.postalCode
- *    .data.storesBySearchTerm.stores[0].adderess.address
- *    .data.storesBySearchTerm.stores[0].adderess.city
- *    .data.storesBySearchTerm.stores[0].adderess.state
+ *    .data.storesBySearchTerm.stores[0].address.postalCode
+ *    .data.storesBySearchTerm.stores[0].address.address
+ *    .data.storesBySearchTerm.stores[0].address.city
+ *    .data.storesBySearchTerm.stores[0].address.state
+ * @param {string} _zipCode 
+ * @returns {object} JSON object containing
+ *                         - address (street address)
+ *                         - city (city name)
+ *                         - state (abbrev)
+ *                         - zipCode (5-digit)
  * 
  * REFERENCE: https://rapidapi.com/apidojo/api/walmart/
  */
+const walmartLocator = async function (_zipCode) {
+  // construct the URL for  endpoint
+  var apiURL = "https://walmart.p.rapidapi.com/stores/list?postalCode=" + _zipCode; // REST endpoint
 
-apiURL ="https://walmart.p.rapidapi.com/stores/list?postalCode=34736";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonWalmartLocations = getAPIData(apiURL, headers);
-console.log(jsonWalmartLocations);
+  var headers = {
+              "method": "GET",
+              "headers": {
+                            "x-rapidapi-host": "walmart.p.rapidapi.com",
+                            "x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
+                         }
+            }; 
+  
+  // execute the API call to the URL
+  var jsonWalmartLocation = await getAPIData(apiURL, headers);
 
-//OR
+  // parse out pertinent data content returned
+  var address = jsonWalmartLocation.data.storesBySearchTerm.stores[0].address.address;
+  var city = jsonWalmartLocation.data.storesBySearchTerm.stores[0].address.city;
+  var state = jsonWalmartLocation.data.storesBySearchTerm.stores[0].address.state;
+  var postal_code = jsonWalmartLocation.data.storesBySearchTerm.stores[0].address.postalCode;
 
-apiURL ="https://walmart.p.rapidapi.com/stores/list-preferred?postalCode=34736&preferredStoreId=2695";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonWalmartLocations = getAPIData(apiURL, headers);
-console.log(jsonWalmartLocations);
+  // build a concise JSON object to return
+  var json = {"address": address,
+              "city": city,
+              "state": state,
+              "zipCode": postal_code};
+  return json;
+}
+
 
 /**
- * Walmart product search
- * input parameters
- *    query (descriptive terms of item) 
+ * walmartProductLocator() - Walmart product search
  * Pertinent keys to pull from returned JSON
  *    .data.search.searchResult.itemStacks[0].items[0].name (descriptive name of item) 
  *    .data.search.searchResult.itemStacks[0].items[0].imageInfo.thumbnailUrl (jpeg URL) 
  *    .data.search.searchResult.itemStacks[0].items[0].priceInfo.currentPrice.price or priceString
+ * 
+ * @param {string} _productDescription
+ * @returns {object} JSON object containing a list of items...each containing an
+ *                        - image (thumbnail image of the item) 
+ *                        - description (of the item)
+ *                        - price (decimal number)
+ *                        - formattedPrice (string representation of price with pre-pended $ sign)
  */
+const walmartProductLocator = async function (_productDescription) {
+  // transform parameters for URL syntax
+  var productDescription = _productDescription.replaceAll(/,/g, ' ').replaceAll(/ +/g, ' ').replaceAll(' ', '+');
 
-apiURL ="https://walmart.p.rapidapi.com/products/v2/list?cat_id=0&sort=price_low&page=1&query=crayola+crayons+24+count";
-headers = {"method": "GET","headers": {"x-rapidapi-host": "walmart.p.rapidapi.com","x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"}}; 
-var jsonWalmartProduct = getAPIData(apiURL, headers);
-console.log(jsonWalmartProduct);
+  // construct the URL for Walmart product search endpoint
+  var apiURL = "https://walmart.p.rapidapi.com/products/v2/list?query=" + productDescription + "&sort=price_low";  // REST endpoint
+  var headers = {
+              "method": "GET",
+              "headers": {
+                            "x-rapidapi-host": "walmart.p.rapidapi.com",
+                            "x-rapidapi-key": "9813878aa1msh7c70fcdc9bbf8a6p1e1f78jsn1ff70bded748"
+                         }
+            }; 
+
+  // execute the API call to the URL
+  var jsonProductResults = await getAPIData(apiURL, headers);
+          
+  // parse out pertinent data content returned and build concise JSON object to return
+  var json = {"items":[]};
+  for (var i = 0; i < jsonProductResults.data.search.searchResult.itemStacks[0].items.length; i++) {
+    json.items.push({
+      "image": jsonProductResults.data.search.searchResult.itemStacks[0].items[i].imageInfo.thumbnailUrl,
+      "description": jsonProductResults.data.search.searchResult.itemStacks[0].items[i].name,
+      "price": jsonProductResults.data.search.searchResult.itemStacks[0].items[i].priceInfo.currentPrice.price,
+      "foramattedPrice": jsonProductResults.data.search.searchResult.itemStacks[0].items[i].priceInfo.currentPrice.priceString
+    });
+  }
+  return json;
+}
